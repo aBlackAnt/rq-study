@@ -2,7 +2,7 @@
 
 如下图：
 
-![1545056053500](D:\github\mine\rq-study\nameServer\images\code_all)
+![](https://github.com/aBlackAnt/rq-study/blob/master/nameServer/images/code_all.png)
 
 TODO:各个类概述。
 
