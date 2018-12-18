@@ -2,7 +2,7 @@
 
 如下图：
 
-![](https://github.com/aBlackAnt/rq-study/blob/master/nameServer/images/code_all.png)
+![](https://github.com/aBlackAnt/rq-study/blob/master/nameServer/images/code_all.png?raw=true)
 
 ***NamesrvStartup***：NameServer启动类；
 
