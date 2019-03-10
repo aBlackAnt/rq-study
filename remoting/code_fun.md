@@ -2,10 +2,6 @@
 
 基于netty的底层通信实现，把通信功能和消息处理功能分离，不同类型的通信内容被抽象成发送带有对应类型代码的Command，同时根据类型代码查找对应的Processor和Executor来执行，所有服务间的交互都基于此模块。（关于netty可参阅 Netty实战）
 
-参考：http://www.iocoder.cn/RocketMQ/huzhongtang/rpc-1/
-
-​	    http://www.iocoder.cn/RocketMQ/huzhongtang/rpc-2/
-
 # 二、代码结构
 
 ## 2.1 源码结构
@@ -261,6 +257,10 @@ public void processRequestCommand(final ChannelHandlerContext ctx, final Remotin
 ```
 
 
+
+参考：http://www.iocoder.cn/RocketMQ/huzhongtang/rpc-1/
+
+​	    http://www.iocoder.cn/RocketMQ/huzhongtang/rpc-2/
 
 
 
