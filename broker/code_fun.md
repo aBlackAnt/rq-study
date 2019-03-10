@@ -4,13 +4,13 @@ broker是消息的中转站，负责消息的接收、存储、转发。从而�
 
 # 二、代码结构
 
-![1552139238842](C:\Users\jiliang\AppData\Roaming\Typora\typora-user-images\1552139238842.png)
+![1552139238842](https://github.com/aBlackAnt/rq-study/blob/master/broker/images/1552139238842.png?raw=true)
 
 # 三、源码解析
 
 ## 3.1 broker启动
 
-![1552139471112](C:\Users\jiliang\AppData\Roaming\Typora\typora-user-images\1552139471112.png)
+![1552139471112](https://github.com/aBlackAnt/rq-study/blob/master/broker/images/1552139471112.png?raw=true)
 
 - 创建BrokerController
 
@@ -40,22 +40,20 @@ broker是消息的中转站，负责消息的接收、存储、转发。从而�
 
 ## 3.2 消息接收存储
 
-![1552198148200](C:\Users\jiliang\AppData\Roaming\Typora\typora-user-images\1552198148200.png)
+![1552198148200](https://github.com/aBlackAnt/rq-study/blob/master/broker/images/1552198148200.png?raw=true)
 
 - broker接收到sendMessage命令，根据是否批量发送，执行相应的方法
 
 - 在`DefaultMessageStore`类的`putMessage`方法中将消息存入queue buffer中，对应CommiLog类中byteBuffer.put(this.msgStoreItemMemory.array(), 0, msgLen)
 
-
-
-  ![1552208610912](C:\Users\jiliang\AppData\Roaming\Typora\typora-user-images\1552208610912.png)
+![1552208610912](https://github.com/aBlackAnt/rq-study/blob/master/broker/images/1552208610912.png?raw=true)
 
 - 根据不同的刷盘策略(同步刷盘，异步刷盘)，将消息持久化到文件
 
 - 为了高可用，进行主从同步（同步复制，异步复制）
 
 
-![1552210211848](C:\Users\jiliang\AppData\Roaming\Typora\typora-user-images\1552210211848.png)
+![1552210211848](https://github.com/aBlackAnt/rq-study/blob/master/broker/images/1552210211848.png?raw=true)
 
 - 该实现类是一个线程函数，内部通过run操作循环去`commitLog`去消息位移信息保存到`consumeQueue`当中
 
@@ -63,7 +61,7 @@ broker是消息的中转站，负责消息的接收、存储、转发。从而�
 
 ## 3.3 消息存储结构
 
-![1552206950348](C:\Users\jiliang\AppData\Roaming\Typora\typora-user-images\1552206950348.png)
+![1552206950348](https://github.com/aBlackAnt/rq-study/blob/master/broker/images/1552206950348.png?raw=true)
 
 - 消息的存储由两部分构成，分别是`CommitLog`和`ComsumeQueue`，前者是真正的消息物理存储文件，后者是消息的逻辑队列，存储的是指向物理存储的地址，每个Topic下的每个`MessageQueue`都对应一个`ConsumeQueue`文件。
 - 向`CommitLog`顺序写，随机读，充分利用操作系统的`pageCache`机制，可以批量地从磁盘读取，作为cache存到内存中，加快后续读取速度。
