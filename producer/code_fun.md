@@ -1,6 +1,6 @@
 # 一、Producer功能
 
-同步发送、异步发送、延迟发送、事务消息等
+同步发送、异步发送、延迟发送、事务消息、单向消息等
 
 # 二、Producer代码结构
 
@@ -17,6 +17,8 @@ Q2：发送的过程？
 Q3：怎么做到顺序？事务？
 
 ## 3.1 发送消息
+
+使用封装的 `DefaultMQProducer` 进行消息发送
 
 ```java
 private SendResult sendDefaultImpl(
@@ -391,7 +393,92 @@ public void endTransactionOneway(
     }
 ```
 
+## 3.3 顺序消息
 
+```java
+public class Producer {
+    public static void main(String[] args) throws UnsupportedEncodingException {
+        try {
+            MQProducer producer = new DefaultMQProducer("please_rename_unique_group_name");
+            producer.start();
+
+            String[] tags = new String[] {"TagA", "TagB", "TagC", "TagD", "TagE"};
+            for (int i = 0; i < 100; i++) {
+                int orderId = i % 10;
+                Message msg =
+                    new Message("TopicTestjjj", tags[i % tags.length], "KEY" + i,
+                        ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET));
+                SendResult sendResult = producer.send(msg, new MessageQueueSelector() {
+                    @Override
+                    public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
+                        Integer id = (Integer) arg;
+                        int index = id % mqs.size();
+                        return mqs.get(index);
+                    }
+                }, orderId);
+
+                System.out.printf("%s%n", sendResult);
+            }
+
+            producer.shutdown();
+        } catch (MQClientException | RemotingException | MQBrokerException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+> 顺序消息发送官方示例
+
+```java
+ @Override
+    public SendResult send(Message msg, MessageQueueSelector selector, Object arg)
+        throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
+        return this.defaultMQProducerImpl.send(msg, selector, arg);
+    }
+```
+
+- 通过 `MessageQueueSelector` 指定一个消息队列
+
+```java
+private SendResult sendSelectImpl(
+        Message msg,
+        MessageQueueSelector selector,
+        Object arg,
+        final CommunicationMode communicationMode,
+        final SendCallback sendCallback, final long timeout
+    ) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
+        long beginStartTime = System.currentTimeMillis();
+        this.makeSureStateOK();
+        Validators.checkMessage(msg, this.defaultMQProducer);
+
+        TopicPublishInfo topicPublishInfo = this.tryToFindTopicPublishInfo(msg.getTopic());
+        if (topicPublishInfo != null && topicPublishInfo.ok()) {
+            MessageQueue mq = null;
+            try {
+                mq = selector.select(topicPublishInfo.getMessageQueueList(), msg, arg);
+            } catch (Throwable e) {
+                throw new MQClientException("select message queue throwed exception.", e);
+            }
+
+            long costTime = System.currentTimeMillis() - beginStartTime;
+            if (timeout < costTime) {
+                throw new RemotingTooMuchRequestException("sendSelectImpl call timeout");
+            }
+            if (mq != null) {
+                return this.sendKernelImpl(msg, mq, communicationMode, sendCallback, null, timeout - costTime);
+            } else {
+                throw new MQClientException("select message queue return null.", null);
+            }
+        }
+
+        throw new MQClientException("No route info for this topic, " + msg.getTopic(), null);
+    }
+```
+
+- 通过 `Topic` 获取对应消息队列集合，作为参数传入自定义selector中
+- 根据自定义规则，获取指定消息队列
+- 调用发送消息核心方法
 
 
 
